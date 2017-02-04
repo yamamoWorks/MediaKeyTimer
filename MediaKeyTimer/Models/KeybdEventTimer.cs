@@ -27,10 +27,10 @@ namespace MediaKeyTimer.Models
             IsRunning = _isRunning.ToReadOnlyReactiveProperty();
 
             ElamsedTime = _time
-                .Select(t => t.ToString(@"h\:mm\:ss"))
+                .Select(t => TimeSpan.FromTicks(Math.Max(t.Ticks, 0)).ToString(@"h\:mm\:ss"))
                 .ToReadOnlyReactiveProperty();
 
-            _time.Where(t => t.TotalMinutes >= Period.Value)
+            _time.Where(t => t.TotalMinutes < 0)
                 .Subscribe(_ =>
                 {
                     Stop();
@@ -45,11 +45,11 @@ namespace MediaKeyTimer.Models
                 return;
 
             _isRunning.Value = true;
-            var startTime = DateTime.Now;
+            var countdown = DateTime.Now.AddMinutes(Period.Value);
 
             _timerSubscription =
                 Observable.Interval(TimeSpan.FromMilliseconds(100))
-                .Subscribe(x => _time.Value = (DateTime.Now - startTime));
+                .Subscribe(x => _time.Value = (countdown - DateTime.Now));
         }
 
         public void Stop()
