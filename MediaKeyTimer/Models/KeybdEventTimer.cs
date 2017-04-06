@@ -30,12 +30,15 @@ namespace MediaKeyTimer.Models
                 .Select(t => TimeSpan.FromTicks(Math.Max(t.Ticks, 0)).ToString(@"h\:mm\:ss"))
                 .ToReadOnlyReactiveProperty();
 
-            _time.Where(t => t.TotalMinutes < 0)
+            _time.Where(t => t.TotalMinutes <= 0)
                 .Subscribe(_ =>
                 {
+                    if (IsRunning.Value)
+                    {
+                        keybd_event((byte)virtualKey, 0, 0, UIntPtr.Zero);
+                        keybd_event((byte)virtualKey, 0, 2, UIntPtr.Zero);
+                    }
                     Stop();
-                    keybd_event((byte)virtualKey, 0, 0, UIntPtr.Zero);
-                    keybd_event((byte)virtualKey, 0, 2, UIntPtr.Zero);
                 });
         }
 
